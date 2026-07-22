@@ -1,0 +1,36 @@
+{
+  "name": "bay-homunculus",
+  "version": "1.0.0",
+  "description": "The Bay Area redrawn so that distance means travel time.",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "fetch": "tsx scripts/01_fetch_streets.ts",
+    "graph": "tsx scripts/02_build_graph.ts",
+    "grid": "tsx scripts/03_generate_grid.ts",
+    "route": "tsx scripts/04_route_matrix.ts",
+    "embed": "tsx scripts/05_embed.ts",
+    "bundle": "tsx scripts/06_bundle_viewer.ts",
+    "pipeline": "npm run fetch && npm run graph && npm run grid && npm run route && npm run embed && npm run bundle",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maninae/bay-homunculus.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Maninae/bay-homunculus/issues"
+  },
+  "homepage": "https://github.com/Maninae/bay-homunculus#readme",
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  },
+  "private": true
+}
