@@ -238,18 +238,29 @@ function renderTripRows() {
         const delta = activeMin - otherMin;
         const deltaSign = delta > 0 ? '+' : '';
         const deltaStr = Math.abs(delta) < 0.05 ? '±0.0' : `${deltaSign}${delta.toFixed(1)}`;
-        row.innerHTML = `
-            <div class="trip-endpoints">
-                <span class="trip-from">${trip.from}</span>
-                <span class="trip-arrow" aria-hidden="true">&#8594;</span>
-                <span class="trip-to">${trip.to}</span>
-            </div>
-            <div class="trip-metrics">
-                <span class="trip-miles"><span class="num">${trip.miles.toFixed(1)}</span><span class="unit">mi</span></span>
-                <span class="trip-minutes"><span class="num">${activeMin.toFixed(1)}</span><span class="unit">min</span></span>
-                <span class="trip-delta" title="vs ${otherMode === 'friday' ? 'Friday 5 pm' : 'speed limits'}">${deltaStr} min</span>
-            </div>
-        `;
+        // Built with createElement/textContent (not innerHTML) so bundle strings
+        // can never be interpreted as markup.
+        const span = (cls, text) => {
+            const el = document.createElement('span');
+            el.className = cls;
+            el.textContent = text;
+            return el;
+        };
+        const endpoints = document.createElement('div');
+        endpoints.className = 'trip-endpoints';
+        const arrow = span('trip-arrow', '→');
+        arrow.setAttribute('aria-hidden', 'true');
+        endpoints.append(span('trip-from', trip.from), arrow, span('trip-to', trip.to));
+        const metrics = document.createElement('div');
+        metrics.className = 'trip-metrics';
+        const miles = span('trip-miles', '');
+        miles.append(span('num', trip.miles.toFixed(1)), span('unit', 'mi'));
+        const mins = span('trip-minutes', '');
+        mins.append(span('num', activeMin.toFixed(1)), span('unit', 'min'));
+        const deltaEl = span('trip-delta', `${deltaStr} min`);
+        deltaEl.title = `vs ${otherMode === 'friday' ? 'Friday 5 pm' : 'speed limits'}`;
+        metrics.append(miles, mins, deltaEl);
+        row.append(endpoints, metrics);
         row.addEventListener('click', () => {
             state.selectedTripIndex = (state.selectedTripIndex === i) ? -1 : i;
             renderTripRows();

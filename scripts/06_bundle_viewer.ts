@@ -58,7 +58,7 @@ const TRIPS: [string, string][] = [
 interface GraphFile {
   nodeLat: number[]; nodeLon: number[];
   edgeFrom: number[]; edgeTo: number[]; edgeLengthM: number[]; edgeWay: number[];
-  ways: { cls: string; mph: number; bridge: boolean; name?: string; ref?: string }[];
+  ways: { cls: string; mph: number; bridge: boolean; lat: number; lon: number; name?: string; ref?: string }[];
 }
 interface AnchorRecord { lat: number; lon: number; node: number }
 interface LayoutFile { stress1: number; anchors: { lat: number; lon: number; tlat: number; tlon: number; stress: number }[] }
@@ -130,10 +130,14 @@ function main(): void {
       });
       const pathLats: number[] = [];
       const pathLons: number[] = [];
+      let reachedSource = false;
       for (let node = toNode; node !== -1; node = parents[node]) {
         pathLats.push(graph.nodeLat[node]);
         pathLons.push(graph.nodeLon[node]);
-        if (node === fromNode) break;
+        if (node === fromNode) { reachedSource = true; break; }
+      }
+      if (!reachedSource) {
+        throw new Error(`trip ${fromName} -> ${toName} (${mode.key}): no route reached the source node; SCC filtering should have prevented this`);
       }
       pathLats.reverse(); pathLons.reverse();
       if (mode.key === "freeflow") {

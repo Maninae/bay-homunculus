@@ -13,7 +13,7 @@
 
 The cortical homunculus draws the human body the way the brain feels it: huge hands, huge lips, a tiny torso. This map draws the Bay Area the way a driver feels it. The two miles across a bridge swell into a long haul, and the ten freeway miles down 280 shrink to almost nothing. Everyone who lives here knows the Bay's signature move: a crossing you could kayak in 20 minutes takes 45 by car at 5pm.
 
-Drag the slider and the map morphs from familiar geography to a layout where every pair of points sits as far apart as the drive between them takes, computed from the real street network. Ferry Building to Palo Alto is 34.3 miles; at posted limits it plays like 37 minutes, on a modeled Friday at 5pm it plays like 64.
+Drag the slider and the map morphs from familiar geography to a layout where every pair of points sits as far apart as the drive between them takes, computed from the real street network. Ferry Building to Palo Alto is 34.3 miles; at posted limits it plays like 37.5 minutes, on a modeled Friday at 5pm it plays like 64.5.
 
 | Geography | Travel time, Friday 5 pm |
 |---|---|
@@ -63,7 +63,7 @@ The full research, including what's dead (RIP Uber Movement) and what's legally 
 
 ## Credits
 
-Street data © OpenStreetMap contributors.
+Street data © OpenStreetMap contributors. The derived dataset `docs/data/bundle.json` remains under the [ODbL](https://opendatacommons.org/licenses/odbl/); the code is MIT.
 
 ## License
 

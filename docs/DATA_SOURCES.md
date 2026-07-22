@@ -16,7 +16,7 @@ This turns "where do we buy a travel-time matrix" into "where do we sample a few
 
 - **Overpass API** for a bounded extract of drivable ways. Fine for a city-scale bounding box (tiled queries), slow and rude for nine counties.
 - **[Geofabrik NorCal extract](https://download.geofabrik.de/north-america/us/california/norcal.html)**: a daily-updated `.osm.pbf` of Northern California. The better path at Bay scale; clip to our bounding box locally.
-- Tags of interest: `highway`, `maxspeed`, `oneway`. Apply default speeds where `maxspeed` is missing (25 mph residential, 60 mph motorway).
+- Tags of interest: `highway`, `maxspeed`, `oneway`. Apply default speeds where `maxspeed` is missing (25 mph residential, 65 mph motorway).
 - License: ODbL. Free for any use with attribution.
 
 ## 2. Congestion signal

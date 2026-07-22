@@ -35,45 +35,43 @@ function binKey(lon, lat) {
     return bx + '|' + by;
 }
 
-// Find the K nearest anchors to (lon, lat). Expands the search ring until enough
-// candidates are gathered, then keeps the top K by squared distance.
+// Find the K nearest anchors to (lon, lat), expanding cell rings outward.
+// Maintains the top-K while scanning; a ring at Chebyshev radius r can hold
+// nothing closer than (r-1) * cellSize, so once that bound exceeds the current
+// Kth-best distance the search is provably complete (no boundary bias).
 function findKNearest(lon, lat, anchors, grid, k) {
     const bx = Math.floor(lon / GRID_CELL_LON);
     const by = Math.floor(lat / GRID_CELL_LAT);
-    const candidates = [];
-    // Expand ring outward until we have at least ~2k candidates (buffer to
-    // avoid boundary bias: neighbours slightly beyond the closest cells may
-    // still beat cells inside the initial ring).
-    for (let ring = 0; ring <= 20; ring++) {
+    const bestIdx = new Int32Array(k).fill(-1);
+    const bestD2 = new Float64Array(k).fill(Infinity);
+    const cellMin = Math.min(GRID_CELL_LON, GRID_CELL_LAT);
+    let found = 0;
+    for (let ring = 0; ring <= 40; ring++) {
+        if (found >= k && (ring - 1) * cellMin > Math.sqrt(bestD2[k - 1])) break;
         for (let dx = -ring; dx <= ring; dx++) {
             for (let dy = -ring; dy <= ring; dy++) {
                 // Only visit the shell of the current ring, not the interior we already scanned.
                 if (ring > 0 && Math.abs(dx) !== ring && Math.abs(dy) !== ring) continue;
                 const bucket = grid.get((bx + dx) + '|' + (by + dy));
                 if (!bucket) continue;
-                for (const idx of bucket) candidates.push(idx);
+                for (const idx of bucket) {
+                    const dLon = anchors[idx][0] - lon;
+                    const dLat = anchors[idx][1] - lat;
+                    const d2 = dLon * dLon + dLat * dLat;
+                    // Insert into the top-k list if better than the current worst.
+                    if (d2 >= bestD2[k - 1]) continue;
+                    let slot = k - 1;
+                    while (slot > 0 && bestD2[slot - 1] > d2) {
+                        bestD2[slot] = bestD2[slot - 1];
+                        bestIdx[slot] = bestIdx[slot - 1];
+                        slot--;
+                    }
+                    bestD2[slot] = d2;
+                    bestIdx[slot] = idx;
+                    if (found < k) found++;
+                }
             }
         }
-        if (candidates.length >= k * 2) break;
-    }
-    // Partial sort: pick top-k by squared distance. K is tiny (6), so a linear
-    // scan with an insertion into a fixed-size top list beats a full sort.
-    const bestIdx = new Int32Array(k).fill(-1);
-    const bestD2 = new Float64Array(k).fill(Infinity);
-    for (const idx of candidates) {
-        const dLon = anchors[idx][0] - lon;
-        const dLat = anchors[idx][1] - lat;
-        const d2 = dLon * dLon + dLat * dLat;
-        // Insert into the top-k list if better than the current worst.
-        if (d2 >= bestD2[k - 1]) continue;
-        let slot = k - 1;
-        while (slot > 0 && bestD2[slot - 1] > d2) {
-            bestD2[slot] = bestD2[slot - 1];
-            bestIdx[slot] = bestIdx[slot - 1];
-            slot--;
-        }
-        bestD2[slot] = d2;
-        bestIdx[slot] = idx;
     }
     return { bestIdx, bestD2 };
 }

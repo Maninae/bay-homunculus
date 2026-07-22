@@ -10,7 +10,7 @@ const MPH_TO_METERS_PER_SECOND = 0.44704;
 export interface WeightableGraph {
   edgeLengthM: number[];
   edgeWay: number[];
-  ways: { cls: string; mph: number; name?: string; ref?: string }[];
+  ways: { cls: string; mph: number; lat?: number; lon?: number; name?: string; ref?: string }[];
 }
 
 export type ScenarioKey = "freeflow" | "friday";

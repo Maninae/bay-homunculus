@@ -10,7 +10,8 @@
  * Input:  data/streets.json
  * Output: data/graph.json
  *   { nodeLat, nodeLon, edgeFrom, edgeTo, edgeLengthM, edgeWay,
- *     ways: [{ cls, mph, bridge, name?, ref? }] }
+ *     ways: [{ cls, mph, bridge, lat, lon, name?, ref? }] }
+ *   (way lat/lon = first vertex, for bbox-scoped corridor overrides)
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -65,11 +66,17 @@ function main(): void {
   const edgeTo: number[] = [];
   const edgeLengthM: number[] = [];
   const edgeWay: number[] = [];
-  const wayTable: { cls: string; mph: number; bridge: boolean; name?: string; ref?: string }[] = [];
+  const wayTable: {
+    cls: string; mph: number; bridge: boolean; lat: number; lon: number; name?: string; ref?: string;
+  }[] = [];
 
   for (const way of ways) {
     const wayIdx = wayTable.length;
-    wayTable.push({ cls: way.cls, mph: way.mph, bridge: way.bridge, name: way.name, ref: way.ref });
+    wayTable.push({
+      cls: way.cls, mph: way.mph, bridge: way.bridge,
+      lat: way.lats[0], lon: way.lons[0],
+      name: way.name, ref: way.ref,
+    });
     let runStartIdx = 0;
     let runLengthM = 0;
     for (let i = 1; i < way.refs.length; i++) {
@@ -77,7 +84,8 @@ function main(): void {
       if (!junctionIndexByOsmId.has(way.refs[i])) continue;
       const fromNode = junctionIndexByOsmId.get(way.refs[runStartIdx])!;
       const toNode = junctionIndexByOsmId.get(way.refs[i])!;
-      if (fromNode !== toNode && runLengthM > 0) {
+      // Sub-half-meter chains round to zero length and would traverse in zero time; drop them.
+      if (fromNode !== toNode && runLengthM >= 0.5) {
         if (way.oneway >= 0) {
           edgeFrom.push(fromNode); edgeTo.push(toNode);
           edgeLengthM.push(runLengthM); edgeWay.push(wayIdx);

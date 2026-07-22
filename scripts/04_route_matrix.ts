@@ -18,7 +18,7 @@ import { computeScenarioWeightsSeconds, type ScenarioKey } from "../src/traffic/
 interface GraphFile {
   nodeLat: number[]; nodeLon: number[];
   edgeFrom: number[]; edgeTo: number[]; edgeLengthM: number[]; edgeWay: number[];
-  ways: { cls: string; mph: number; bridge: boolean; name?: string; ref?: string }[];
+  ways: { cls: string; mph: number; bridge: boolean; lat: number; lon: number; name?: string; ref?: string }[];
 }
 
 function main(): void {
