@@ -11,9 +11,15 @@
     <meta property="og:url" content="https://maninae.github.io/bay-homunculus/">
     <meta name="twitter:card" content="summary">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0f1c'/><path d='M6 22 Q10 8 16 14 T26 10' stroke='%23e8ae4c' stroke-width='2.4' fill='none' stroke-linecap='round'/><circle cx='6' cy='22' r='2.2' fill='%238fc8d8'/><circle cx='26' cy='10' r='2.2' fill='%238fc8d8'/></svg>">
+    <script>
+        // Set the theme attribute before the stylesheet paints (no flash).
+        document.documentElement.dataset.theme =
+            localStorage.getItem('bay-theme') ||
+            (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=DM+Sans:opsz,wght@9..40,300..600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@300..800&family=Overpass+Mono:wght@300..600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,17 +28,41 @@
     <div class="page">
         <header class="masthead">
             <div class="masthead-title">
-                <h1>Bay <em>Homunculus</em></h1>
+                <h1>Bay Homunculus</h1>
+                <svg class="route-squiggle" viewBox="0 0 120 18" aria-hidden="true" focusable="false">
+                    <defs>
+                        <linearGradient id="routeGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="var(--squiggle-start)"/>
+                            <stop offset="1" stop-color="var(--squiggle-end)"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M5 12 C 22 3, 36 16, 56 9 S 90 4, 114 8"
+                          fill="none" stroke="url(#routeGrad)" stroke-width="2.5"
+                          stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                    <circle cx="5" cy="12" r="3.2" fill="var(--squiggle-start)"/>
+                    <circle cx="114" cy="8" r="3.2" fill="var(--squiggle-end)"/>
+                </svg>
                 <p class="subline">A map of the Bay Area where distance means travel time.</p>
             </div>
             <div class="masthead-controls">
-                <div class="mode-toggle" role="group" aria-label="Traffic scenario">
-                    <button class="mode-btn active" data-mode="freeflow" aria-pressed="true">
-                        <span class="mode-label">Speed limits</span>
-                    </button>
-                    <button class="mode-btn" data-mode="friday" aria-pressed="false">
-                        <span class="mode-label">Friday 5 pm</span>
-                        <span class="mode-tag">modeled</span>
+                <div class="controls-row">
+                    <div class="mode-toggle" role="group" aria-label="Traffic scenario">
+                        <button class="mode-btn active" data-mode="freeflow" aria-pressed="true">
+                            <span class="mode-label">Speed limits</span>
+                        </button>
+                        <button class="mode-btn" data-mode="friday" aria-pressed="false">
+                            <span class="mode-label">Friday 5 pm</span>
+                            <span class="mode-tag">modeled</span>
+                        </button>
+                    </div>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Switch between day and night map">
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4.4"/>
+                            <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+                        </svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20.4 14.2A8.4 8.4 0 1 1 9.8 3.6a6.8 6.8 0 1 0 10.6 10.6z"/>
+                        </svg>
                     </button>
                 </div>
                 <div class="stress-readout" title="Cartogram stress: how much the distances had to bend to fit a flat page.">

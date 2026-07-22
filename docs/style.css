@@ -1,28 +1,18 @@
-/* Bay Homunculus */
+/* Bay Homunculus
+   One type family (Overpass, born from US highway-sign lettering, plus its
+   mono sibling for numerals). Two themes that are literally day and night
+   over the same road atlas: night = sodium-lit freeways on ink, day = the
+   printed atlas look, persimmon highways on warm paper. */
 
 :root {
-    --ink:        #0a0f1c;
-    --ink-2:      #101828;
-    --ink-3:      #172033;
-    --hairline:   #263048;
-    --hairline-2: #1a2338;
-    --paper:      #e8e6de;
-    --paper-dim:  #9a9c98;
-    --paper-mute: #6c6f70;
-    --gold:       #e8ae4c;
-    --gold-deep:  #b57f2b;
-    --ochre:      #a58039;
-    --steel:      #4a5670;
-    --steel-lo:   #2f3852;
-    --accent:     #8fc8d8;
-    --accent-dim: #4c7285;
-    --danger:     #d97052;
-
-    --font-display: 'Fraunces', 'Cormorant Garamond', 'Times New Roman', serif;
-    --font-ui:      'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-mono:    'DM Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --font-ui:   'Overpass', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'Overpass Mono', ui-monospace, Menlo, monospace;
 
     --morph-t: 0;
+
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-sm: 7px;
 
     --gap-1: 4px;
     --gap-2: 8px;
@@ -30,7 +20,66 @@
     --gap-4: 16px;
     --gap-5: 24px;
     --gap-6: 32px;
-    --gap-7: 48px;
+}
+
+/* ---------- Night atlas ---------- */
+:root[data-theme="dark"] {
+    --bg-page:    #0b101d;
+    --surface:    #121a2b;
+    --surface-2:  #1a2438;
+    --hairline:   #27314a;
+    --hairline-2: #1b2439;
+    --text:       #ece9df;
+    --text-dim:   #a0a3a0;
+    --text-mute:  #6f7375;
+    --warm:       #e8ae4c;   /* sodium freeway glow */
+    --warm-deep:  #b57f2b;
+    --pop:        #ef8a5f;   /* route coral, interactive moments */
+    --cool:       #8fc8d8;   /* bay teal, trips */
+    --danger:     #d97052;
+
+    --squiggle-start: #8fc8d8;
+    --squiggle-end:   #ef8a5f;
+
+    --panel-shadow: none;
+    --glass: rgba(11, 16, 29, 0.65);
+    --sw-motorway: #e8ae4c; --sw-trunk: #b58436; --sw-primary: #6a5a3d; --sw-secondary: #3a4762;
+    --sw-glow: rgba(232, 174, 76, 0.5);
+    --slider-gradient: linear-gradient(90deg, #2a3247 0%, #3d4360 30%, #6a5a3d 60%, #b58436 82%, #e8ae4c 100%);
+    --thumb: #e8ae4c;
+    --thumb-ring: rgba(232, 174, 76, 0.55);
+    --page-glow-a: rgba(232, 174, 76, 0.035);
+    --page-glow-b: rgba(143, 200, 216, 0.03);
+}
+
+/* ---------- Day atlas ---------- */
+:root[data-theme="light"] {
+    --bg-page:    #f1e9d6;
+    --surface:    #faf5e8;
+    --surface-2:  #ece3cc;
+    --hairline:   #d9cdaf;
+    --hairline-2: #e2d8bf;
+    --text:       #2e2c24;
+    --text-dim:   #6b675a;
+    --text-mute:  #938d7c;
+    --warm:       #c9531f;   /* printed-map highway persimmon */
+    --warm-deep:  #a84418;
+    --pop:        #d95f36;
+    --cool:       #1d7a93;
+    --danger:     #b8441f;
+
+    --squiggle-start: #1d7a93;
+    --squiggle-end:   #d95f36;
+
+    --panel-shadow: 0 14px 34px rgba(94, 74, 32, 0.10);
+    --glass: rgba(250, 245, 232, 0.75);
+    --sw-motorway: #d95f36; --sw-trunk: #dd8f3c; --sw-primary: #c9995c; --sw-secondary: #a3a08e;
+    --sw-glow: transparent;
+    --slider-gradient: linear-gradient(90deg, #c3bda9 0%, #c9995c 45%, #dd8f3c 75%, #d95f36 100%);
+    --thumb: #d95f36;
+    --thumb-ring: rgba(217, 95, 54, 0.4);
+    --page-glow-a: rgba(217, 95, 54, 0.05);
+    --page-glow-b: rgba(29, 122, 147, 0.05);
 }
 
 *, *::before, *::after {
@@ -40,8 +89,8 @@
 html, body {
     margin: 0;
     padding: 0;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--bg-page);
+    color: var(--text);
     font-family: var(--font-ui);
     font-size: 15px;
     line-height: 1.45;
@@ -53,11 +102,10 @@ html, body {
 
 body {
     min-height: 100vh;
-    /* Subtle atmospheric gradient so the ink doesn't read flat. */
     background:
-        radial-gradient(ellipse at 30% 15%, rgba(232, 174, 76, 0.035), transparent 55%),
-        radial-gradient(ellipse at 80% 90%, rgba(143, 200, 216, 0.03), transparent 60%),
-        var(--ink);
+        radial-gradient(ellipse at 30% 15%, var(--page-glow-a), transparent 55%),
+        radial-gradient(ellipse at 80% 90%, var(--page-glow-b), transparent 60%),
+        var(--bg-page);
 }
 
 .boot-status {
@@ -66,8 +114,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--ink);
-    color: var(--paper-dim);
+    background: var(--bg-page);
+    color: var(--text-dim);
     font-family: var(--font-mono);
     font-size: 13px;
     letter-spacing: 0.05em;
@@ -107,31 +155,41 @@ body {
 }
 
 .masthead-title h1 {
-    font-family: var(--font-display);
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-size: clamp(38px, 6vw, 68px);
-    line-height: 0.95;
-    letter-spacing: -0.02em;
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: clamp(34px, 5.2vw, 56px);
+    line-height: 1;
+    letter-spacing: -0.025em;
     margin: 0;
-    color: var(--paper);
-    font-variation-settings: 'SOFT' 40, 'opsz' 128;
+    color: var(--text);
 }
 
-.masthead-title h1 em {
-    font-style: italic;
-    font-weight: 300;
-    color: var(--gold);
-    font-variation-settings: 'SOFT' 60, 'opsz' 128;
+/* The signature: a little route that stretches as the map does.
+   The path scales with the morph slider; the endpoint dots counter-scale
+   so they stay round while the route between them grows. */
+.route-squiggle {
+    display: block;
+    width: 190px;
+    height: 20px;
+    margin-top: 7px;
+    overflow: visible;
+    transform: scaleX(calc(1 + var(--morph-t) * 0.4));
+    transform-origin: left center;
+}
+
+.route-squiggle circle {
+    transform: scaleX(calc(1 / (1 + var(--morph-t) * 0.4)));
+    transform-box: fill-box;
+    transform-origin: center;
 }
 
 .subline {
-    margin: 6px 0 0 0;
-    font-family: var(--font-ui);
-    font-size: 14px;
-    color: var(--paper-dim);
+    margin: 8px 0 0 0;
+    font-weight: 300;
+    font-size: 14.5px;
+    color: var(--text-dim);
     letter-spacing: 0.005em;
-    max-width: 42ch;
+    max-width: 46ch;
 }
 
 .masthead-controls {
@@ -141,28 +199,35 @@ body {
     gap: var(--gap-3);
 }
 
+.controls-row {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-3);
+}
+
 /* Mode toggle */
 
 .mode-toggle {
     display: inline-flex;
-    background: var(--ink-2);
+    background: var(--surface);
     border: 1px solid var(--hairline);
     border-radius: 999px;
     padding: 4px;
     gap: 2px;
+    box-shadow: var(--panel-shadow);
 }
 
 .mode-btn {
     display: inline-flex;
     align-items: center;
     gap: var(--gap-2);
-    padding: 8px 16px;
+    padding: 8px 16px 7px;
     border: 0;
     background: transparent;
-    color: var(--paper-dim);
+    color: var(--text-dim);
     font-family: var(--font-ui);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.01em;
     border-radius: 999px;
     cursor: pointer;
@@ -170,19 +235,19 @@ body {
 }
 
 .mode-btn:hover {
-    color: var(--paper);
+    color: var(--text);
 }
 
 .mode-btn.active {
-    background: var(--ink-3);
-    color: var(--paper);
+    background: var(--surface-2);
+    color: var(--text);
     box-shadow: inset 0 0 0 1px var(--hairline);
 }
 
 .mode-btn[data-mode="friday"].active {
-    color: var(--gold);
-    box-shadow: inset 0 0 0 1px rgba(232, 174, 76, 0.35);
-    background: linear-gradient(180deg, rgba(232, 174, 76, 0.08), rgba(232, 174, 76, 0));
+    color: var(--warm);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warm) 35%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--warm) 9%, transparent), transparent);
 }
 
 .mode-tag {
@@ -190,23 +255,54 @@ body {
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--paper-mute);
-    padding: 2px 6px;
+    color: var(--text-mute);
+    padding: 2px 6px 1px;
     border: 1px solid var(--hairline);
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 .mode-btn.active .mode-tag {
-    color: var(--gold-deep);
-    border-color: rgba(232, 174, 76, 0.35);
+    color: var(--warm-deep);
+    border-color: color-mix(in srgb, var(--warm) 35%, transparent);
 }
+
+/* Theme toggle (day / night) */
+
+.theme-toggle {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 50%;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
+    box-shadow: var(--panel-shadow);
+}
+
+.theme-toggle:hover {
+    color: var(--pop);
+    border-color: color-mix(in srgb, var(--pop) 45%, transparent);
+    transform: rotate(12deg);
+}
+
+.theme-toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+:root[data-theme="dark"] .icon-moon { display: none; }
+:root[data-theme="light"] .icon-sun { display: none; }
 
 /* Stress readout */
 
 .stress-readout {
     font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--paper-mute);
+    color: var(--text-mute);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     display: inline-flex;
@@ -215,7 +311,7 @@ body {
 }
 
 .stress-value {
-    color: var(--paper);
+    color: var(--text);
     font-size: 15px;
     font-weight: 400;
     letter-spacing: 0.02em;
@@ -223,7 +319,7 @@ body {
 }
 
 .stress-mode {
-    color: var(--paper-mute);
+    color: var(--text-mute);
     text-transform: none;
     font-size: 11px;
     letter-spacing: 0.02em;
@@ -235,12 +331,10 @@ body {
 .mode-note {
     margin: 0;
     padding: 0 2px;
-    font-family: var(--font-display);
-    font-style: italic;
     font-weight: 300;
-    font-size: 15px;
-    color: var(--paper-dim);
-    letter-spacing: 0.005em;
+    font-size: 14px;
+    color: var(--text-dim);
+    letter-spacing: 0.01em;
 }
 
 /* ---------- Stage: map + trips ---------- */
@@ -256,11 +350,12 @@ body {
 
 .map-wrap {
     position: relative;
-    background: var(--ink-2);
+    background: var(--surface);
     border: 1px solid var(--hairline-2);
-    border-radius: 4px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     min-width: 0;
+    box-shadow: var(--panel-shadow);
     /* Definite height for the canvas child. Flex parent (.page) gives .stage
        a resolved height, grid-template-rows resolves the map-wrap row height. */
 }
@@ -269,7 +364,6 @@ body {
     display: block;
     width: 100%;
     height: 100%;
-    background: var(--ink);
     cursor: crosshair;
 }
 
@@ -277,18 +371,17 @@ body {
     position: absolute;
     bottom: 12px;
     left: 14px;
-    font-family: var(--font-ui);
     font-size: 12px;
-    color: var(--paper-dim);
+    color: var(--text-dim);
     opacity: 0;
     transition: opacity 200ms ease;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(10, 15, 28, 0.7);
+    background: var(--glass);
     padding: 6px 10px;
     border: 1px solid var(--hairline);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     backdrop-filter: blur(3px);
     pointer-events: none;
     max-width: 320px;
@@ -302,7 +395,8 @@ body {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: rgba(232, 230, 222, 0.7);
+    background: currentColor;
+    opacity: 0.7;
     display: inline-block;
     flex: none;
 }
@@ -315,14 +409,14 @@ body {
     grid-template-columns: auto auto;
     gap: 4px 8px;
     align-items: center;
-    background: rgba(10, 15, 28, 0.55);
+    background: var(--glass);
     padding: 8px 12px;
     border: 1px solid var(--hairline-2);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     backdrop-filter: blur(3px);
     font-family: var(--font-mono);
     font-size: 10px;
-    color: var(--paper-dim);
+    color: var(--text-dim);
     letter-spacing: 0.05em;
     text-transform: uppercase;
     pointer-events: none;
@@ -335,25 +429,26 @@ body {
     border-radius: 2px;
 }
 
-.swatch-motorway  { background: #e8ae4c; box-shadow: 0 0 6px rgba(232, 174, 76, 0.5); }
-.swatch-trunk     { background: #b58436; }
-.swatch-primary   { background: #6a5a3d; }
-.swatch-secondary { background: #3a4762; }
+.swatch-motorway  { background: var(--sw-motorway); box-shadow: 0 0 6px var(--sw-glow); }
+.swatch-trunk     { background: var(--sw-trunk); }
+.swatch-primary   { background: var(--sw-primary); }
+.swatch-secondary { background: var(--sw-secondary); }
 
 .road-label {
-    color: var(--paper-mute);
+    color: var(--text-mute);
 }
 
 /* ---------- Trips panel ---------- */
 
 .trips-panel {
-    background: var(--ink-2);
+    background: var(--surface);
     border: 1px solid var(--hairline-2);
-    border-radius: 4px;
+    border-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    box-shadow: var(--panel-shadow);
 }
 
 .trips-header {
@@ -363,19 +458,17 @@ body {
 
 .trips-header h2 {
     margin: 0;
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-style: italic;
-    font-size: 20px;
-    color: var(--paper);
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--text);
     letter-spacing: -0.005em;
 }
 
 .trips-hint {
     margin: 4px 0 0 0;
     font-size: 12px;
-    color: var(--paper-mute);
-    font-family: var(--font-ui);
+    font-weight: 300;
+    color: var(--text-mute);
 }
 
 .trip-list {
@@ -391,10 +484,10 @@ body {
     width: 100%;
     text-align: left;
     background: transparent;
-    color: var(--paper);
+    color: var(--text);
     border: 0;
     padding: 12px 14px;
-    border-radius: 3px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     font-family: var(--font-ui);
     transition: background-color 140ms ease;
@@ -402,12 +495,12 @@ body {
 }
 
 .trip-row:hover {
-    background: var(--ink-3);
+    background: var(--surface-2);
 }
 
 .trip-row.selected {
-    background: linear-gradient(90deg, rgba(143, 200, 216, 0.12), rgba(143, 200, 216, 0.02));
-    box-shadow: inset 2px 0 0 var(--accent);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--cool) 14%, transparent), color-mix(in srgb, var(--cool) 3%, transparent));
+    box-shadow: inset 2px 0 0 var(--cool);
 }
 
 .trip-endpoints {
@@ -415,13 +508,15 @@ body {
     align-items: baseline;
     gap: 6px;
     font-size: 14px;
+    font-weight: 600;
     line-height: 1.25;
-    color: var(--paper);
+    color: var(--text);
 }
 
 .trip-arrow {
-    color: var(--paper-mute);
+    color: var(--text-mute);
     font-size: 12px;
+    font-weight: 400;
 }
 
 .trip-metrics {
@@ -430,25 +525,24 @@ body {
     align-items: baseline;
     gap: 14px;
     font-size: 12px;
-    color: var(--paper-mute);
+    color: var(--text-mute);
 }
 
 .trip-metrics .num {
     font-family: var(--font-mono);
-    color: var(--paper);
+    color: var(--text);
     font-size: 13px;
     letter-spacing: 0.01em;
 }
 
 .trip-minutes .num {
-    color: var(--gold);
-    font-weight: 500;
+    color: var(--warm);
+    font-weight: 600;
 }
 
 .trip-metrics .unit {
     margin-left: 3px;
-    color: var(--paper-mute);
-    font-family: var(--font-ui);
+    color: var(--text-mute);
     font-size: 10px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -456,52 +550,48 @@ body {
 
 .trip-delta {
     font-family: var(--font-mono);
-    color: var(--paper-mute);
+    color: var(--text-mute);
     font-size: 11px;
     letter-spacing: 0.01em;
 }
 
-.trip-row.selected .trip-metrics .num {
-    color: var(--accent);
-}
-
+.trip-row.selected .trip-metrics .num,
 .trip-row.selected .trip-minutes .num {
-    color: var(--accent);
+    color: var(--cool);
 }
 
-/* ---------- Morph bar (the signature interaction) ---------- */
+/* ---------- Morph bar (the hero interaction) ---------- */
 
 .morph-bar {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     align-items: center;
     gap: var(--gap-4);
-    padding: var(--gap-4) var(--gap-3);
-    background: linear-gradient(180deg, var(--ink-2), var(--ink));
+    padding: var(--gap-4) var(--gap-4);
+    background: var(--surface);
     border: 1px solid var(--hairline-2);
-    border-radius: 4px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--panel-shadow);
 }
 
 .morph-label {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 300;
-    font-size: 17px;
-    color: var(--paper-dim);
-    letter-spacing: 0.005em;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: lowercase;
+    color: var(--text-mute);
     white-space: nowrap;
     transition: color 200ms ease;
-    font-variation-settings: 'SOFT' 40, 'opsz' 24;
 }
 
 .morph-label-left {
-    /* Fades from full to muted as t -> 1. */
-    color: color-mix(in oklab, var(--paper) calc((1 - var(--morph-t)) * 100%), var(--paper-mute));
+    /* Fades toward muted as t -> 1. */
+    color: color-mix(in oklab, var(--text) calc((1 - var(--morph-t)) * 100%), var(--text-mute));
     text-align: right;
 }
 
 .morph-label-right {
-    color: color-mix(in oklab, var(--gold) calc(var(--morph-t) * 100%), var(--paper-mute));
+    color: color-mix(in oklab, var(--pop) calc(var(--morph-t) * 100%), var(--text-mute));
     text-align: left;
 }
 
@@ -517,16 +607,9 @@ body {
     inset: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 4px;
+    height: 5px;
     border-radius: 999px;
-    background: linear-gradient(
-        90deg,
-        #2a3247 0%,
-        #3d4360 30%,
-        #6a5a3d 60%,
-        #b58436 82%,
-        var(--gold) 100%
-    );
+    background: var(--slider-gradient);
     box-shadow: 0 0 0 1px var(--hairline-2);
     pointer-events: none;
 }
@@ -547,7 +630,7 @@ body {
     display: block;
     width: 1px;
     height: 100%;
-    background: var(--paper-mute);
+    background: var(--text-mute);
     opacity: 0.3;
 }
 
@@ -580,35 +663,33 @@ body {
 .morph-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 22px;
-    height: 22px;
-    background: var(--gold);
+    width: 24px;
+    height: 24px;
+    background: var(--thumb);
     border-radius: 50%;
-    border: 2px solid var(--ink);
-    margin-top: 12px;
+    border: 3px solid var(--surface);
+    margin-top: 11px;
     box-shadow:
-        0 0 0 1px rgba(232, 174, 76, 0.6),
-        0 0 12px rgba(232, 174, 76, 0.55),
-        0 0 24px rgba(232, 174, 76, 0.25);
+        0 0 0 1px var(--thumb-ring),
+        0 0 12px var(--thumb-ring);
     cursor: grab;
     transition: transform 100ms ease;
 }
 
 .morph-slider::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
-    background: var(--gold);
+    width: 24px;
+    height: 24px;
+    background: var(--thumb);
     border-radius: 50%;
-    border: 2px solid var(--ink);
+    border: 3px solid var(--surface);
     box-shadow:
-        0 0 0 1px rgba(232, 174, 76, 0.6),
-        0 0 12px rgba(232, 174, 76, 0.55),
-        0 0 24px rgba(232, 174, 76, 0.25);
+        0 0 0 1px var(--thumb-ring),
+        0 0 12px var(--thumb-ring);
     cursor: grab;
 }
 
 .morph-slider:active::-webkit-slider-thumb {
-    transform: scale(1.1);
+    transform: scale(1.12);
 }
 
 .morph-slider:focus {
@@ -617,9 +698,8 @@ body {
 
 .morph-slider:focus-visible::-webkit-slider-thumb {
     box-shadow:
-        0 0 0 2px var(--accent),
-        0 0 12px rgba(232, 174, 76, 0.55),
-        0 0 24px rgba(232, 174, 76, 0.25);
+        0 0 0 2px var(--cool),
+        0 0 12px var(--thumb-ring);
 }
 
 /* X-ray toggle */
@@ -628,14 +708,14 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 8px 14px 7px;
     background: transparent;
-    color: var(--paper-dim);
+    color: var(--text-dim);
     border: 1px solid var(--hairline);
     border-radius: 999px;
     font-family: var(--font-ui);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     cursor: pointer;
@@ -643,14 +723,14 @@ body {
 }
 
 .xray-toggle:hover {
-    color: var(--paper);
-    border-color: var(--paper-mute);
+    color: var(--text);
+    border-color: var(--text-mute);
 }
 
 .xray-toggle.active {
-    background: rgba(143, 200, 216, 0.08);
-    color: var(--accent);
-    border-color: rgba(143, 200, 216, 0.4);
+    background: color-mix(in srgb, var(--cool) 10%, transparent);
+    color: var(--cool);
+    border-color: color-mix(in srgb, var(--cool) 40%, transparent);
 }
 
 .xray-glyph {
@@ -664,6 +744,17 @@ body {
         14px 0 0 -3px currentColor;
 }
 
+/* Keyboard focus for every control */
+
+.mode-btn:focus-visible,
+.theme-toggle:focus-visible,
+.xray-toggle:focus-visible,
+.trip-row:focus-visible,
+.attribution a:focus-visible {
+    outline: 2px solid var(--cool);
+    outline-offset: 2px;
+}
+
 /* ---------- Footer ---------- */
 
 .site-footer {
@@ -673,9 +764,9 @@ body {
 
 .attribution {
     margin: 0;
-    font-family: var(--font-ui);
     font-size: 12px;
-    color: var(--paper-mute);
+    font-weight: 300;
+    color: var(--text-mute);
     letter-spacing: 0.01em;
     display: flex;
     flex-wrap: wrap;
@@ -689,15 +780,15 @@ body {
 }
 
 .attribution a {
-    color: var(--paper-dim);
+    color: var(--text-dim);
     text-decoration: none;
     border-bottom: 1px solid var(--hairline);
     transition: color 160ms ease, border-color 160ms ease;
 }
 
 .attribution a:hover {
-    color: var(--gold);
-    border-color: var(--gold);
+    color: var(--pop);
+    border-color: var(--pop);
 }
 
 /* ---------- Responsive ---------- */
@@ -745,7 +836,10 @@ body {
         padding: var(--gap-3) var(--gap-3) var(--gap-2);
     }
     .masthead-title h1 {
-        font-size: clamp(34px, 12vw, 44px);
+        font-size: clamp(30px, 10.5vw, 40px);
+    }
+    .route-squiggle {
+        width: 150px;
     }
     .stress-readout .stress-value { font-size: 14px; }
     .road-legend {

@@ -1,12 +1,12 @@
 // Entry point: load bundle, precompute displacements, wire UI, run the render loop.
 
 import { precomputeDisplacements, makeProjection } from './warp.js';
-import { renderFrame, groupStreetsByClass, ROAD_CLASSES } from './render.js';
+import { renderFrame, groupStreetsByClass, MAP_PALETTES } from './render.js';
 
 const BUNDLE_URL = 'data/bundle.json';
-const BG_COLOR = '#0a0f1c';
 const MODE_TWEEN_MS = 600;
 const CANVAS_PADDING = 16;
+const THEME_STORAGE_KEY = 'bay-theme';
 
 const state = {
     // Data
@@ -25,6 +25,8 @@ const state = {
     tweening: false,
     showXray: false,
     selectedTripIndex: -1,
+    // Theme ('dark' | 'light'); the boot script in index.html sets the initial attribute.
+    theme: document.documentElement.dataset.theme === 'light' ? 'light' : 'dark',
     // Canvas
     canvas: null,
     ctx: null,
@@ -59,6 +61,7 @@ async function boot() {
 
     // UI wire-up
     setupModeToggle();
+    setupThemeToggle();
     setupMorphSlider();
     setupXrayToggle();
     setupTripsPanel();
@@ -164,6 +167,16 @@ function setupModeToggle() {
         btn.addEventListener('click', () => {
             applyMode(btn.dataset.mode, false);
         });
+    });
+}
+
+function setupThemeToggle() {
+    const btn = document.getElementById('theme-toggle');
+    btn.addEventListener('click', () => {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = state.theme;
+        localStorage.setItem(THEME_STORAGE_KEY, state.theme);
+        state.needsFrame = true;
     });
 }
 
@@ -335,7 +348,7 @@ function drawScene() {
         modeBlend: state.currentBlend,
         showXray: state.showXray,
         highlightedTrip: highlighted,
-        bg: BG_COLOR,
+        palette: MAP_PALETTES[state.theme],
     });
 }
 
@@ -345,6 +358,3 @@ boot().catch(err => {
     console.error(err);
     setStatus('Something went wrong loading the map. See console for details.', true);
 });
-
-// Expose road-class palette for legend rendering if the DOM asks for it.
-export { ROAD_CLASSES };

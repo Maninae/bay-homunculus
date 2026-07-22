@@ -1,35 +1,62 @@
 // Canvas rendering: streets grouped by class, anchors as x-ray dots, highlighted trip.
 //
 // One Path2D per street class per frame. Per-frame allocation is limited to the
-// eight Path2D objects (one per class); vertex loops read the cached geo + per-mode
+// Path2D objects (one per class); vertex loops read the cached geo + per-mode
 // displacement Float32Arrays and write only to the canvas context.
+//
+// Two palettes, one per theme: night is sodium-lit freeways with glow on ink,
+// day is the printed-atlas look, persimmon highways on paper with no glow
+// (print does not glow). Same widths hierarchy, day slightly heavier to make
+// up for the missing bloom.
 
-// Road class hierarchy, ordered draw-back to draw-front (widest, dimmest first;
-// narrowest, brightest on top). Stroke widths scale with canvas density but stay
-// perceptually within the same band across zoom levels.
-export const ROAD_CLASSES = [
-    { key: 'tertiary',      color: '#2c3448', width: 0.55, glow: 0 },
-    { key: 'secondary',     color: '#3a4762', width: 0.75, glow: 0 },
-    { key: 'primary',       color: '#6a5a3d', width: 0.90, glow: 0 },
-    { key: 'trunk_link',    color: '#8a6a34', width: 0.85, glow: 0 },
-    { key: 'trunk',         color: '#b58436', width: 1.30, glow: 3 },
-    { key: 'motorway_link', color: '#c89138', width: 1.10, glow: 4 },
-    { key: 'motorway',      color: '#e8ae4c', width: 1.55, glow: 6 },
+// Draw order, back to front: widest+dimmest first, freeways on top.
+export const ROAD_CLASS_ORDER = [
+    'tertiary', 'secondary', 'primary', 'trunk_link', 'trunk', 'motorway_link', 'motorway',
 ];
 
-const TRIP_HIGHLIGHT_COLOR = '#8fc8d8';
+export const MAP_PALETTES = {
+    dark: {
+        bg: '#0a0f1c',
+        anchor: 'rgba(232, 230, 222, 0.55)',
+        trip: '#8fc8d8',
+        tripGlow: 10,
+        roads: {
+            tertiary:      { color: '#2c3448', width: 0.55, glow: 0 },
+            secondary:     { color: '#3a4762', width: 0.75, glow: 0 },
+            primary:       { color: '#6a5a3d', width: 0.90, glow: 0 },
+            trunk_link:    { color: '#8a6a34', width: 0.85, glow: 0 },
+            trunk:         { color: '#b58436', width: 1.30, glow: 3 },
+            motorway_link: { color: '#c89138', width: 1.10, glow: 4 },
+            motorway:      { color: '#e8ae4c', width: 1.55, glow: 6 },
+        },
+    },
+    light: {
+        bg: '#faf5e8',
+        anchor: 'rgba(46, 44, 36, 0.5)',
+        trip: '#1d7a93',
+        tripGlow: 0,
+        roads: {
+            tertiary:      { color: '#d8cfb4', width: 0.60, glow: 0 },
+            secondary:     { color: '#b9b49e', width: 0.80, glow: 0 },
+            primary:       { color: '#c9995c', width: 1.00, glow: 0 },
+            trunk_link:    { color: '#dfa06a', width: 0.95, glow: 0 },
+            trunk:         { color: '#dd8f3c', width: 1.40, glow: 0 },
+            motorway_link: { color: '#e0764a', width: 1.20, glow: 0 },
+            motorway:      { color: '#d95f36', width: 1.75, glow: 0 },
+        },
+    },
+};
+
 const TRIP_HIGHLIGHT_WIDTH = 2.4;
-const TRIP_HIGHLIGHT_GLOW = 10;
 const TRIP_ENDPOINT_RADIUS = 5;
 
 const ANCHOR_BASE_RADIUS = 0.9;
 const ANCHOR_STRESS_SCALE = 22;
-const ANCHOR_COLOR = 'rgba(232, 230, 222, 0.55)';
 
 // Group streets by class once for the render loop.
 export function groupStreetsByClass(streets, dispByMode) {
     const groups = new Map();
-    for (const rc of ROAD_CLASSES) groups.set(rc.key, []);
+    for (const key of ROAD_CLASS_ORDER) groups.set(key, []);
     for (let i = 0; i < streets.length; i++) {
         const s = streets[i];
         const bucket = groups.get(s.cls);
@@ -43,15 +70,10 @@ export function groupStreetsByClass(streets, dispByMode) {
     return groups;
 }
 
-// Compute the effective displacement for one vertex under a mode-blend.
-//   blend = 0 -> use dispA (previous mode), blend = 1 -> use dispB (current mode).
-// Inlined into each polyline loop below for speed; this signature is documentary.
-
 // Draw one class group as a single stroked Path2D.
-// `blend` is the current tween value from previous mode (0) to current mode (1);
-// `modeSign` = 1 if current mode is freeflow, so dispA=freeflow, dispB=friday.
-// Actually we take dispA and dispB directly so the caller decides which is "from" and "to".
-function drawClass(ctx, group, rc, projection, t, blend, projectVertex) {
+// `blend` tweens displacement between the freeflow (0) and friday (1) fields;
+// `t` is the morph amount from geography (0) to time-space (1).
+function drawClass(ctx, group, style, projection, t, blend) {
     if (group.length === 0) return;
     const path = new Path2D();
     for (let s = 0; s < group.length; s++) {
@@ -60,49 +82,42 @@ function drawClass(ctx, group, rc, projection, t, blend, projectVertex) {
         const dA = seg.dispA;
         const dB = seg.dispB;
         const nVerts = geo.length / 2;
-        // First vertex
         let lon = geo[0];
         let lat = geo[1];
         let dispLon = dA[0] + (dB[0] - dA[0]) * blend;
         let dispLat = dA[1] + (dB[1] - dA[1]) * blend;
-        let wLon = lon + t * dispLon;
-        let wLat = lat + t * dispLat;
-        path.moveTo(projection.projectX(wLon), projection.projectY(wLat));
+        path.moveTo(projection.projectX(lon + t * dispLon), projection.projectY(lat + t * dispLat));
         for (let v = 1; v < nVerts; v++) {
             const i2 = v * 2;
             lon = geo[i2];
             lat = geo[i2 + 1];
             dispLon = dA[i2] + (dB[i2] - dA[i2]) * blend;
             dispLat = dA[i2 + 1] + (dB[i2 + 1] - dA[i2 + 1]) * blend;
-            wLon = lon + t * dispLon;
-            wLat = lat + t * dispLat;
-            path.lineTo(projection.projectX(wLon), projection.projectY(wLat));
+            path.lineTo(projection.projectX(lon + t * dispLon), projection.projectY(lat + t * dispLat));
         }
     }
-    ctx.strokeStyle = rc.color;
-    ctx.lineWidth = rc.width;
-    if (rc.glow > 0) {
-        ctx.shadowColor = rc.color;
-        ctx.shadowBlur = rc.glow;
+    ctx.strokeStyle = style.color;
+    ctx.lineWidth = style.width;
+    if (style.glow > 0) {
+        ctx.shadowColor = style.color;
+        ctx.shadowBlur = style.glow;
     } else {
         ctx.shadowBlur = 0;
     }
     ctx.stroke(path);
     ctx.shadowBlur = 0;
-    // projectVertex is a hint that future callers might want to project inline; unused here.
-    void projectVertex;
 }
 
 export function renderFrame(ctx, state) {
     const {
         canvas, projection, groups, anchors, anchorDisp, stress,
-        t, modeBlend, showXray, highlightedTrip, bg,
+        t, modeBlend, showXray, highlightedTrip, palette,
     } = state;
 
-    // Clear with background.
+    // Clear with the theme background.
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = bg;
+    ctx.fillStyle = palette.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // Apply DPR transform for the rest of the frame.
     ctx.scale(state.dpr, state.dpr);
@@ -110,34 +125,35 @@ export function renderFrame(ctx, state) {
     ctx.lineJoin = 'round';
 
     // Draw road classes back-to-front.
-    for (const rc of ROAD_CLASSES) {
-        const group = groups.get(rc.key);
-        drawClass(ctx, group, rc, projection, t, modeBlend);
+    for (const key of ROAD_CLASS_ORDER) {
+        drawClass(ctx, groups.get(key), palette.roads[key], projection, t, modeBlend);
     }
 
     // Highlighted trip on top of the road network.
     if (highlightedTrip) {
-        drawTrip(ctx, highlightedTrip, projection, t, modeBlend);
+        drawTrip(ctx, highlightedTrip, palette, projection, t, modeBlend);
     }
 
     // X-ray anchors on top of everything.
     if (showXray) {
-        drawAnchors(ctx, anchors, anchorDisp, stress, projection, t, modeBlend);
+        drawAnchors(ctx, anchors, anchorDisp, stress, palette, projection, t, modeBlend);
     }
 
     ctx.restore();
 }
 
-function drawTrip(ctx, trip, projection, t, blend) {
+function drawTrip(ctx, trip, palette, projection, t, blend) {
     const geo = trip.geo;
     const dA = trip.dispA;
     const dB = trip.dispB;
     const nVerts = geo.length / 2;
     if (nVerts < 2) return;
 
-    ctx.shadowColor = TRIP_HIGHLIGHT_COLOR;
-    ctx.shadowBlur = TRIP_HIGHLIGHT_GLOW;
-    ctx.strokeStyle = TRIP_HIGHLIGHT_COLOR;
+    if (palette.tripGlow > 0) {
+        ctx.shadowColor = palette.trip;
+        ctx.shadowBlur = palette.tripGlow;
+    }
+    ctx.strokeStyle = palette.trip;
     ctx.lineWidth = TRIP_HIGHLIGHT_WIDTH;
     ctx.beginPath();
     for (let v = 0; v < nVerts; v++) {
@@ -160,7 +176,7 @@ function drawTrip(ctx, trip, projection, t, blend) {
          dA[(nVerts - 1) * 2], dA[(nVerts - 1) * 2 + 1],
          dB[(nVerts - 1) * 2], dB[(nVerts - 1) * 2 + 1]],
     ];
-    ctx.fillStyle = TRIP_HIGHLIGHT_COLOR;
+    ctx.fillStyle = palette.trip;
     for (const e of endpoints) {
         const [lon, lat, dAx, dAy, dBx, dBy] = e;
         const dispLon = dAx + (dBx - dAx) * blend;
@@ -173,8 +189,8 @@ function drawTrip(ctx, trip, projection, t, blend) {
     }
 }
 
-function drawAnchors(ctx, anchors, anchorDisp, stress, projection, t, blend) {
-    ctx.fillStyle = ANCHOR_COLOR;
+function drawAnchors(ctx, anchors, anchorDisp, stress, palette, projection, t, blend) {
+    ctx.fillStyle = palette.anchor;
     for (let i = 0; i < anchors.length; i++) {
         const lon = anchors[i][0];
         const lat = anchors[i][1];
