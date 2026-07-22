@@ -1,0 +1,17 @@
+# Secrets: TomTom / 511.org API keys
+.env
+
+# OS
+.DS_Store
+
+# Node (if the pipeline goes TypeScript)
+node_modules/
+
+# Python (if the pipeline goes Python)
+__pycache__/
+*.pyc
+.venv/
+
+# Bulk downloads and generated matrices (regenerable; large ones belong on vega)
+data/cache/
+*.osm.pbf
