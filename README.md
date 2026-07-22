@@ -3,52 +3,63 @@
 **The Bay Area redrawn so that distance means travel time.**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-research-blue" alt="Status: research">
+  <img src="https://img.shields.io/badge/status-live-brightgreen" alt="Status: live">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT">
 </p>
 
+**[Live map](https://maninae.github.io/bay-homunculus/)** | **[Data sources](docs/DATA_SOURCES.md)**
+
 ---
 
-The cortical homunculus draws the human body the way the brain feels it: huge hands, huge lips, a tiny torso. This project draws the Bay Area the way a driver feels it. The two miles across a bridge approach swell into a long haul, and the ten freeway miles down 280 shrink to almost nothing. Everyone who lives here knows the Bay's signature move: a crossing you could kayak in 20 minutes takes 45 by car at 5pm.
+The cortical homunculus draws the human body the way the brain feels it: huge hands, huge lips, a tiny torso. This map draws the Bay Area the way a driver feels it. The two miles across a bridge swell into a long haul, and the ten freeway miles down 280 shrink to almost nothing. Everyone who lives here knows the Bay's signature move: a crossing you could kayak in 20 minutes takes 45 by car at 5pm.
 
-The plan is a map you can morph with a slider. At one end, familiar geography. At the other, a version of the Bay where every pair of points sits as far apart as the drive between them actually takes, computed from real street networks, real traffic, and real transit schedules.
+Drag the slider and the map morphs from familiar geography to a layout where every pair of points sits as far apart as the drive between them takes, computed from the real street network. Ferry Building to Palo Alto is 34.3 miles; at posted limits it plays like 37 minutes, on a modeled Friday at 5pm it plays like 64.
 
-The Bay should warp more dramatically than almost any city you could try this on: eight toll bridges, two parallel freeway spines, and a body of water in the middle of the map.
+| Geography | Travel time, Friday 5 pm |
+|---|---|
+| ![The Bay Area drawn geographically, freeways glowing amber](assets/preview__desktop__geography.jpg) | ![The same map warped so distances match Friday-evening travel times](assets/preview__desktop__t1-friday.jpg) |
 
 ## How it works
 
-The key insight: you don't need to buy an origin-destination travel-time dataset. You compute travel times yourself by routing over the free OpenStreetMap street network, and only need external data for two things: how traffic slows each road segment, and when transit runs.
+You don't need to buy an origin-destination travel-time dataset. Travel times come from routing over the free OpenStreetMap street network; external data is only needed for congestion and transit schedules.
 
-1. **Sample the region.** Lay a hexagonal grid of anchor points over the Bay, drop the ones in water, and keep roughly 1,000 points so the all-pairs matrix stays tractable (about 500k routes).
-2. **Build the street graph.** Drivable roads from OpenStreetMap with speed limits and one-way rules, then Dijkstra between every pair of anchors for free-flow times.
-3. **Add traffic.** Per-segment congestion multipliers from a traffic API (and Caltrans freeway sensors) turn free-flow times into Friday-at-5pm times.
-4. **Add transit.** The 511.org regional GTFS feed covers every Bay Area operator in one file; RAPTOR routing over it gives transit travel times.
-5. **Embed.** Multidimensional scaling (classical MDS, then SMACOF refinement) finds 2D positions whose distances match the travel times, and Procrustes alignment rotates the result back onto geographic north.
-6. **Morph.** A static viewer interpolates each point between its geographic and time-space positions.
+1. **Sample the region.** A hexagonal lattice at 1.5 km spacing, keeping only points with a road junction within 500 m. The bay has no roads, so road proximity is the land mask: 908 anchors survive.
+2. **Build the street graph.** 96k drivable OSM ways become 111k junction nodes and 248k directed edges after degree-2 chain contraction; only the largest strongly connected component survives.
+3. **Route everything.** Early-exit binary-heap Dijkstra from every anchor: 411,778 pairs per scenario, symmetrized, in about 8 seconds per scenario.
+4. **Add traffic.** v1 ships a modeled Friday-5pm profile: per-class multipliers plus corridor overrides for the famous chokepoints (Bay Bridge 2.4x, I-80 Eastshore 2.2x, US-101 1.9x). Clearly labeled as modeled; measured TomTom data slots in when an API key lands.
+5. **Embed.** Classical MDS initializes, SMACOF stress majorization refines, orthogonal Procrustes rotates the result back onto geographic north. Kruskal stress-1: 0.099 at speed limits, 0.085 on Friday.
+6. **Morph.** The viewer precomputes a warp field (6 nearest anchors per street vertex, inverse-square weights) and interpolates every road between its geographic and time-space position at 60fps.
 
-Some travel-time sets cannot be drawn on a flat page at all (two neighborhoods equidistant from a bridge cannot both keep their times), so the viewer will also show per-point stress: where the map had to lie to fit the page.
+Some travel-time sets cannot be drawn on a flat page at all: two neighborhoods equidistant from a bridge cannot both keep their measured times. The x-ray view shows per-anchor stress, where the map had to bend to fit the page.
+
+## Run it yourself
+
+```bash
+npm install
+npm run pipeline   # fetch -> graph -> grid -> route -> embed -> bundle
+```
+
+The first run fetches OSM data from Overpass (tiled, cached, ~10 minutes); everything after is local and takes about a minute. Serve `docs/` for the viewer.
 
 ## Where the data comes from
 
 | Source | Provides | Cost |
 |---|---|---|
-| [OpenStreetMap](https://www.openstreetmap.org) (Overpass / [Geofabrik](https://download.geofabrik.de/north-america/us/california/norcal.html)) | Streets, speed limits, one-way rules, shorelines | Free (ODbL) |
-| [TomTom Traffic API](https://developer.tomtom.com/traffic-api/documentation/traffic-flow/flow-segment-data) | Live per-segment congestion (free tier: 2,500 non-tile requests/day) | Free tier |
-| [Caltrans PeMS](https://pems.dot.ca.gov) | Measured freeway speeds from 39,000+ loop detectors statewide | Free account |
-| [511.org Open Data](https://511.org/open-data/transit) | One regional GTFS feed for all Bay Area transit operators | Free API key |
+| [OpenStreetMap](https://www.openstreetmap.org) (Overpass) | Streets, speed limits, one-way rules | Free (ODbL) |
+| Modeled congestion profile | v1 Friday-5pm multipliers | Built in |
+| [TomTom Traffic API](https://developer.tomtom.com/traffic-api/documentation/traffic-flow/flow-segment-data) | Measured per-segment congestion (planned) | Free tier |
+| [Caltrans PeMS](https://pems.dot.ca.gov) | Measured freeway speeds for calibration (planned) | Free account |
+| [511.org Open Data](https://511.org/open-data/transit) | Regional GTFS for the transit mode (planned) | Free API key |
 
-The full research on what's available, what's dead (RIP Uber Movement), and what's legally off-limits for building derived maps lives in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+The full research, including what's dead (RIP Uber Movement) and what's legally off-limits for derived maps, lives in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ## Status
 
-Research phase. The data-source groundwork is done; the pipeline is next.
-
-- [x] Identify Bay Area data sources for streets, traffic, and transit
-- [ ] Scope the region and grid (SF + inner Bay vs. all nine counties)
-- [ ] Build the routing pipeline and free-flow matrix
-- [ ] Add congested and transit variants
-- [ ] MDS/SMACOF embedding and stress diagnostics
-- [ ] Morphing viewer on GitHub Pages
+- [x] Six-stage TypeScript pipeline, no runtime dependencies
+- [x] Live viewer: morph slider, two scenarios, x-ray stress view, sample trips
+- [ ] Measured traffic via TomTom free tier (needs API key)
+- [ ] PeMS calibration of freeway multipliers
+- [ ] Transit mode from 511.org GTFS + RAPTOR routing
 
 ## Credits
 
